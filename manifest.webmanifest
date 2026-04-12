@@ -1,0 +1,23 @@
+{
+  "name": "Yearly budget",
+  "short_name": "Yearly budget",
+  "description": "Track yearly subscriptions by month",
+  "start_url": "/Yearly-budget/",
+  "scope": "/Yearly-budget/",
+  "display": "standalone",
+  "background_color": "#d9d9d9",
+  "theme_color": "#6f6f6f",
+  "id": "/yearly-budget",
+  "icons": [
+    {
+      "src": "Icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "Icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
