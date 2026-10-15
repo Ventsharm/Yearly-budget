@@ -1,0 +1,48 @@
+name: Day-before reminder notifications
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/reminders.yml'
+      - 'automation/**'
+      - 'push-config.js'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Verify Firebase access without sending notifications
+        type: boolean
+        default: true
+  schedule:
+    - cron: '17 9 * * *'
+      timezone: Europe/London
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+concurrency:
+  group: yearly-budget-reminders
+  cancel-in-progress: false
+jobs:
+  send:
+    # Only this main-branch workflow is trusted by the Google identity provider.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: projects/415123329669/locations/global/workloadIdentityPools/github-reminders/providers/github
+          service_account: yearly-reminder-sender@yearly-budget-c93fb.iam.gserviceaccount.com
+          project_id: yearly-budget-c93fb
+      - run: npm run send:reminders
+        env:
+          REMINDERS_ENABLED: 'true'
+          REMINDERS_DRY_RUN: ${{ github.event_name != 'schedule' && (github.event_name != 'workflow_dispatch' || inputs.dry_run) }}
+          FIREBASE_PROJECT_ID: yearly-budget-c93fb
+          GITHUB_TOKEN: ${{ github.token }}
