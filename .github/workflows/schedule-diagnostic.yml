@@ -2,11 +2,6 @@ name: Read-only scheduler diagnostic
 run-name: "Scheduler diagnostic — ${{ github.event.schedule || github.event_name }}"
 on:
   workflow_dispatch:
-  schedule:
-    # Single read-only test at 16:00 UK on 15 October 2026. No Firebase access.
-    # Date-scoped cron repeats annually unless removed; remove after observing the test.
-    - cron: '0 16 15 10 *'
-      timezone: 'Europe/London'
 permissions:
   contents: read
   actions: read
