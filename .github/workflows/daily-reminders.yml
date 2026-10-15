@@ -1,5 +1,5 @@
 name: Day-before reminder notifications
-run-name: "Reminders — ${{ github.event.schedule || github.event_name }}"
+run-name: "Reminders — ${{ inputs.trigger_source || github.event.schedule || github.event_name }}"
 on:
   push:
     branches: [main]
@@ -13,12 +13,13 @@ on:
         description: Verify Firebase access without sending notifications
         type: boolean
         default: true
+      trigger_source:
+        description: Optional label used to identify an external scheduled dispatch
+        type: string
+        default: manual
   schedule:
     # Single daily reminder check, 09:11 UK time (GMT/BST), to minimise Firestore usage.
     - cron: '11 9 * * *'
-      timezone: 'Europe/London'
-    # Temporary live production check, 16:00 UK on 15 October 2026; remove after test.
-    - cron: '0 16 15 10 *'
       timezone: 'Europe/London'
 permissions:
   contents: read
@@ -38,8 +39,9 @@ jobs:
         env:
           TRIGGER: ${{ github.event_name }}
           CRON: ${{ github.event.schedule }}
+          EXTERNAL_SOURCE: ${{ inputs.trigger_source }}
         run: |
-          node -e 'console.log(JSON.stringify({stage:"trigger_started",event:process.env.TRIGGER,cron:process.env.CRON,runId:process.env.GITHUB_RUN_ID,utc:new Date().toISOString()}))'
+          node -e 'console.log(JSON.stringify({stage:"trigger_started",event:process.env.TRIGGER,cron:process.env.CRON,externalSource:process.env.EXTERNAL_SOURCE||null,runId:process.env.GITHUB_RUN_ID,utc:new Date().toISOString()}))'
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
