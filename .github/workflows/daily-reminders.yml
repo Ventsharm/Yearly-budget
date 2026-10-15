@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - '.github/workflows/reminders.yml'
+      - '.github/workflows/daily-reminders.yml'
       - 'automation/**'
       - 'push-config.js'
   workflow_dispatch:
@@ -14,9 +14,9 @@ on:
         type: boolean
         default: true
   schedule:
-    # Temporary diagnostic: 15 October 2026, 13:43 UK (12:43 UTC).
+    # Temporary diagnostic: 15 October 2026, 14:13 UK (13:13 UTC).
     # Restore the normal daily schedule after the owner reviews this test.
-    - cron: '43 12 15 10 *'
+    - cron: '13 13 15 10 *'
 permissions:
   contents: read
   actions: read

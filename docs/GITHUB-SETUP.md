@@ -8,7 +8,7 @@ Uses the existing `yearly-budget-c93fb` Firebase project on free Spark, Firebase
 - The collection-group index on `yearlyReminders(date, done)` is created; token values are excluded from indexing.
 - Dedicated keyless sender: `yearly-reminder-sender@yearly-budget-c93fb.iam.gserviceaccount.com`.
 - Workload identity provider: `projects/415123329669/locations/global/workloadIdentityPools/github-reminders/providers/github`.
-- Provider trust requires repository ID `1208747233`, owner ID `94763309`, `refs/heads/main`, and workflow ref `Ventsharm/Yearly-budget/.github/workflows/reminders.yml@refs/heads/main`.
+- Provider trust requires repository ID `1208747233`, owner ID `94763309`, `refs/heads/main`, and workflow ref `Ventsharm/Yearly-budget/.github/workflows/daily-reminders.yml@refs/heads/main`.
 - The sender has only FCM message creation, Firestore transaction/read/query/create permissions and invalid-token deletion. It has no Owner/Editor role or private service-account key. Server IAM bypasses client rules; do not share this identity with another workflow.
 - The provider and service-account identifiers in the workflow are public configuration. No GitHub Actions variables or stored credentials are needed. Google OIDC credentials are short-lived.
 
