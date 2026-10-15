@@ -91,7 +91,7 @@ function dispatchOncePerUkDay_(source) {
       headers: githubHeaders_(githubToken_()),
       payload: JSON.stringify({
         ref: YEARLY_SCHEDULER.branch,
-        inputs: { dry_run: false, trigger_source: source }
+        inputs: { dry_run: 'false', trigger_source: source }
       }),
       muteHttpExceptions: true
     });
