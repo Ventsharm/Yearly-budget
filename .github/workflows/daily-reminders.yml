@@ -17,10 +17,6 @@ on:
         description: Optional label used to identify an external scheduled dispatch
         type: string
         default: manual
-  schedule:
-    # Single daily reminder check, 09:11 UK time (GMT/BST), to minimise Firestore usage.
-    - cron: '11 9 * * *'
-      timezone: 'Europe/London'
 permissions:
   contents: read
   actions: read
