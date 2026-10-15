@@ -22,7 +22,7 @@ Activation requires reviewing and applying the rules/indexes, an existing-projec
 
 Inspected existing Firebase project `yearly-budget-c93fb` (project number `415123329669`). Cloud Billing reported `billingEnabled: false`, no attached billing account; Firestore reports `eur3`, free tier. FCM and Firestore APIs were already enabled. Cloud Functions and Cloud Scheduler were not enabled, and were not enabled for this change.
 
-Starting repository commit: `97ce87ffd123e8e1d88c2ae01e4dfc3e0659d33d`. A complete Git bundle was made before editing. `docs/firestore.rules.before-reminders` is an exact copy of the live rules read before changes. Creating the remote backup/review branches is currently blocked: both Git push and the GitHub connection returned HTTP 403, `Resource not accessible by integration`. Account-level repository permissions do not establish this connection's ability to write. No remote backup branch or pull request has been created.
+Starting repository commit: `97ce87ffd123e8e1d88c2ae01e4dfc3e0659d33d`. A complete Git bundle was made before editing. `docs/firestore.rules.before-reminders` is an exact copy of the live rules read before changes. GitHub access was verified after the owner authorized the ChatGPT Codex Connector. The remote branch `backup/before-reminders-2026-10-15` preserves the starting commit; the implementation is isolated on `feature/one-time-reminder-push`. Main and the live website remain unchanged.
 
 The supplied ZIP was compared against that commit. It replaced foreground due/overdue notifications with generic Web Push, lacked durable send claims, and proposed a billed Cloud Function. Those parts were not copied into the final design; the existing app and its data paths were retained.
 

@@ -2,7 +2,7 @@
 
 Keep Firebase on Spark. No billable Cloud Functions or Cloud Scheduler. Do not link billing. This branch has no production deployment workflow.
 
-The repository currently exposes read/push access, but this session's GitHub integration cannot read its Actions settings (`403 Resource not accessible by integration`). The owner may need to authorize Actions settings / variables access or set the three variables below through GitHub. That is separate from normal repository write access.
+Repository write access was verified after the owner authorized the ChatGPT Codex Connector. Actions settings and repository variables require their own permissions; verify those before activation. No sender variables or workload identity have been configured by this branch.
 
 ## Identity
 

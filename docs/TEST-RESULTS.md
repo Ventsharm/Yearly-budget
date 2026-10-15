@@ -34,7 +34,7 @@ Syntax checks, `git diff --check`, and a disabled sender run also pass. Disabled
 
 ## Not yet verified / blockers
 
-- **Remote branch/PR:** cannot publish. Git push and the connected GitHub create-branch action both returned HTTP 403. No remote backup branch, review branch or PR exists yet. The local branch and review ZIP are ready.
+- **GitHub publication:** owner authorization resolved the earlier 403 responses. The backup and implementation are published as separate branches for review; main remains unchanged. This verifies repository writes, not sender activation.
 - **Actual GitHub workflow execution:** not run; no workload identity or repository variables were configured, and the workflow remains gated off.
 - **Production Firestore rules/indexes:** prepared and tested, not deployed. The production reminder permissions error remains until the reviewed rules are applied.
 - **Live FCM delivery:** not tested. Existing-project VAPID key and secure GitHub OIDC access must be configured first. No notification credentials were put in the repository.
