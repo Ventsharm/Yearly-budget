@@ -14,9 +14,9 @@ on:
         type: boolean
         default: true
   schedule:
-    # Temporary diagnostic: 15 October 2026, 14:13 UK (13:13 UTC).
+    # Temporary comparison with the independent diagnostic, 14:47 UK.
     # Restore the normal daily schedule after the owner reviews this test.
-    - cron: '13 13 15 10 *'
+    - cron: '47 13 15 10 *'
 permissions:
   contents: read
   actions: read
@@ -31,6 +31,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
+      - name: Record that GitHub created this run
+        env:
+          TRIGGER: ${{ github.event_name }}
+          CRON: ${{ github.event.schedule }}
+        run: |
+          node -e 'console.log(JSON.stringify({stage:"trigger_started",event:process.env.TRIGGER,cron:process.env.CRON,runId:process.env.GITHUB_RUN_ID,utc:new Date().toISOString()}))'
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
@@ -38,13 +44,22 @@ jobs:
           cache: npm
       - run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund
       - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        id: firebase_auth
         with:
           workload_identity_provider: projects/415123329669/locations/global/workloadIdentityPools/github-reminders/providers/github
           service_account: yearly-reminder-sender@yearly-budget-c93fb.iam.gserviceaccount.com
           project_id: yearly-budget-c93fb
       - run: npm run send:reminders
+        id: sender
         env:
           REMINDERS_ENABLED: 'true'
           REMINDERS_DRY_RUN: ${{ github.event_name != 'schedule' && (github.event_name != 'workflow_dispatch' || inputs.dry_run) }}
           FIREBASE_PROJECT_ID: yearly-budget-c93fb
           GITHUB_TOKEN: ${{ github.token }}
+      - name: Record authentication and sender outcomes
+        if: always()
+        env:
+          AUTH_OUTCOME: ${{ steps.firebase_auth.outcome }}
+          SEND_OUTCOME: ${{ steps.sender.outcome }}
+        run: |
+          node -e 'const s={stage:"job_outcomes",firebaseAuthentication:process.env.AUTH_OUTCOME,sender:process.env.SEND_OUTCOME};console.log(JSON.stringify(s));require("node:fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY,"\n## Reminder job outcomes\n\n```json\n"+JSON.stringify(s,null,2)+"\n```\n")'

@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "test": "node --test tests/unit.test.cjs tests/worker.test.cjs",
+    "test": "node --test tests/unit.test.cjs tests/worker.test.cjs tests/diagnostics.test.cjs",
     "test:rules": "node --test tests/rules.test.cjs",
     "send:reminders": "node automation/send.cjs"
   },

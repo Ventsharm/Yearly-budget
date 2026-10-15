@@ -24,7 +24,7 @@ The dedicated sender's Firestore query/create/read/delete permissions and FCM au
 
 Users choose Enable notifications, see the custom popup, then the device's permission request where supported. A successfully saved NEW reminder shows one immediate notification on the saving device. Editing it does not repeat that confirmation. The shared service worker handles these and FCM messages; no competing messaging worker is registered.
 
-At approximately 09:23 Europe/London daily, GitHub checks reminders due tomorrow and sends FCM to registered devices. No due-date alert or email. Overdue reminders remain editable. Clicking a notification opens Reminders and preserves the existing app launch flag, so the app-access overlay accepts a fresh window. Login remains required for private data.
+The intended normal time is approximately 09:23 Europe/London daily. During diagnosis on 15 October 2026 this is replaced by one test at 14:47 UK (13:47 UTC), pending owner review. GitHub checks reminders due tomorrow and sends FCM to registered devices. No due-date alert or email. Overdue reminders remain editable. Clicking a notification opens Reminders and preserves the existing app launch flag, so the app-access overlay accepts a fresh window. Login remains required for private data.
 
 The workflow's manual **dry_run** input defaults to true. This verifies Firebase identity and the reminder index without sending notifications or writing documents. Normal scheduled runs send reminders.
 
@@ -40,7 +40,7 @@ A server claim commits before FCM sends; repeated runs cannot intentionally rese
 
 ## Checks and maintenance
 
-`npm test`: eight date/delivery/service-worker tests. `npm run test:rules` with the local Firestore emulator: five security/sender suites. Mobile-browser checks also passed before temporary review-only browser tooling was removed. They covered login, original subscription fixtures and paid totals, custom permission flow, creation notification, overdue editing, routing and offline shell.
+`npm test`: ten date/delivery/service-worker/diagnostic tests. `npm run test:rules` with the local Firestore emulator: five security/sender suites. Mobile-browser checks also passed before temporary review-only browser tooling was removed. They covered login, original subscription fixtures and paid totals, custom permission flow, creation notification, overdue editing, routing and offline shell.
 
 Tests use only `demo-yearly-budget` in local emulators, never production user accounts. Live transport and Android device acceptance must be checked separately. The installed TWA's native configuration was not supplied; the website's root assetlinks file returned 404, so notification delegation could not be verified here. No Play Store changes are part of this update.
 
@@ -51,3 +51,13 @@ Before future rule/index changes, re-read the live configuration and merge newer
 On 15 October 2026, no morning schedule event appeared in GitHub history. Two manually started runs succeeded and delivered to the owner device. The workflow was re-enabled and the cron was re-registered at 09:23 UK time. No root cause was established and the next automatic run remains to be verified; this is not a guarantee against GitHub scheduling delays/drops. No extra daily polling or paid service was added.
 
 Day-before messages now identify the app as “Yearly Budget reminder”. Chrome controls spam warnings and can still flag a message; wording changes cannot override its decision. For an expected notification, Chrome offers Show notification → Always show → Mark as safe to Chrome. This is a device choice, not an app setting.
+
+## Temporary scheduler diagnosis (15 October 2026)
+
+The 11:20, 13:43 and 14:13 UK test slots created no automatic run as of their checks; successful push/manual runs do not prove scheduler health. No internal GitHub cause is known. The repository is public, not a fork, active on main, and its workflow is enabled. GitHub status reported operational. Administrative Actions settings return HTTP 403 to our connection, so those settings remain unverified.
+
+At 14:47 UK, both daily-reminders.yml and a separate minimal schedule-diagnostic.yml have one date-specific test slot. The diagnostic has only contents/read and actions/read; no OIDC, Firebase, dependencies, writes or notification sends. Run it manually before/after the slot to collect a bounded read-only report in the Actions summary. It checks workflow states and up to ten scheduled runs per workflow and distinguishes not-due-yet, missing events and created scheduled runs. A missing event is not a diagnosis of GitHub's internal cause. No frequent polling or recurring heartbeat is added.
+
+The sender records trigger start, run metadata, Firebase-auth step outcome, sender stage, safe error code and aggregate sending counts. It fails visibly on partial send failures, without automatically retrying ambiguous sends. Raw errors, tokens and user data are excluded from the new diagnostics. FCM acceptance does not prove phone display.
+
+If both independent schedules create no event, prepare a GitHub Support report with this repository, workflow IDs, intended UTC slots, manual run links and these findings. Do not treat more clock changes as a proven fix. Remove the temporary diagnostic schedule and restore one normal daily check after owner review.
