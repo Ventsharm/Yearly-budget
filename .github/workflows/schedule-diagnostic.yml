@@ -3,8 +3,10 @@ run-name: "Scheduler diagnostic — ${{ github.event.schedule || github.event_na
 on:
   workflow_dispatch:
   schedule:
-    # One temporary comparison slot, 14:47 UK on 15 October 2026.
-    - cron: '47 13 15 10 *'
+    # Time-limited read-only probe: every 10 minutes, 16:00-17:50 UK on 15 October.
+    # No repeating daily probe; clean up this annual date-specific cron after inspection.
+    - cron: '*/10 16-17 15 10 *'
+      timezone: 'Europe/London'
 permissions:
   contents: read
   actions: read
