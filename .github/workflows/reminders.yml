@@ -14,8 +14,9 @@ on:
         type: boolean
         default: true
   schedule:
-    - cron: '23 9 * * *'
-      timezone: Europe/London
+    # Temporary diagnostic: 15 October 2026, 13:43 UK (12:43 UTC).
+    # Restore the normal daily schedule after the owner reviews this test.
+    - cron: '43 12 15 10 *'
 permissions:
   contents: read
   actions: read
