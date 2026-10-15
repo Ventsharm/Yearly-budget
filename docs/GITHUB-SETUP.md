@@ -24,7 +24,7 @@ The dedicated sender's Firestore query/create/read/delete permissions and FCM au
 
 Users choose Enable notifications, see the custom popup, then the device's permission request where supported. A successfully saved NEW reminder shows one immediate notification on the saving device. Editing it does not repeat that confirmation. The shared service worker handles these and FCM messages; no competing messaging worker is registered.
 
-At approximately 09:17 Europe/London daily, GitHub checks reminders due tomorrow and sends FCM to registered devices. No due-date alert or email. Overdue reminders remain editable. Clicking a notification opens Reminders and preserves the existing app launch flag, so the app-access overlay accepts a fresh window. Login remains required for private data.
+At approximately 09:23 Europe/London daily, GitHub checks reminders due tomorrow and sends FCM to registered devices. No due-date alert or email. Overdue reminders remain editable. Clicking a notification opens Reminders and preserves the existing app launch flag, so the app-access overlay accepts a fresh window. Login remains required for private data.
 
 The workflow's manual **dry_run** input defaults to true. This verifies Firebase identity and the reminder index without sending notifications or writing documents. Normal scheduled runs send reminders.
 
@@ -45,3 +45,9 @@ A server claim commits before FCM sends; repeated runs cannot intentionally rese
 Tests use only `demo-yearly-budget` in local emulators, never production user accounts. Live transport and Android device acceptance must be checked separately. The installed TWA's native configuration was not supplied; the website's root assetlinks file returned 404, so notification delegation could not be verified here. No Play Store changes are part of this update.
 
 Before future rule/index changes, re-read the live configuration and merge newer additions. Do not overwrite newer production rules or delete unrelated indexes. Never add billing, paid services or Android changes as a workaround without the owner's approval.
+
+## Schedule and Chrome warning check
+
+On 15 October 2026, no morning schedule event appeared in GitHub history. Two manually started runs succeeded and delivered to the owner device. The workflow was re-enabled and the cron was re-registered at 09:23 UK time. No root cause was established and the next automatic run remains to be verified; this is not a guarantee against GitHub scheduling delays/drops. No extra daily polling or paid service was added.
+
+Day-before messages now identify the app as “Yearly Budget reminder”. Chrome controls spam warnings and can still flag a message; wording changes cannot override its decision. For an expected notification, Chrome offers Show notification → Always show → Mark as safe to Chrome. This is a device choice, not an app setting.

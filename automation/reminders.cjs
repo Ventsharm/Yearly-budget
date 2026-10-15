@@ -25,7 +25,7 @@ function deliveryId(path, date) {
 }
 function content(reminder) {
   return {
-    title: reminder.type === "cancel" ? "Cancel subscription tomorrow" : "Payment / top-up due tomorrow",
+    title: "Yearly Budget reminder",
     body: `${reminder.name}${typeof reminder.amount === "number" ? " · £" + reminder.amount.toFixed(2) : ""} is due tomorrow.`,
   };
 }

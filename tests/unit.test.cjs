@@ -18,7 +18,7 @@ test('delivery IDs separate users and dates, and content says tomorrow', () => {
   assert.notEqual(a,deliveryId('users/b/yearlyReminders/r','2026-10-16'));
   assert.notEqual(a,deliveryId('users/a/yearlyReminders/r','2026-10-17'));
   assert.deepEqual(content({type:'payment',name:'O2',amount:5}), {
-    title:'Payment / top-up due tomorrow', body:'O2 · £5.00 is due tomorrow.',
+    title:'Yearly Budget reminder', body:'O2 · £5.00 is due tomorrow.',
   });
 });
 test('frontend date validation rejects impossible dates', async () => {
