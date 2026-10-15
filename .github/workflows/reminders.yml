@@ -16,9 +16,6 @@ on:
   schedule:
     - cron: '23 9 * * *'
       timezone: Europe/London
-    # Temporary owner-requested test on 15 October; remove after checking the run.
-    - cron: '20 11 15 10 *'
-      timezone: Europe/London
 permissions:
   contents: read
   actions: read
