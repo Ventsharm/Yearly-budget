@@ -18,6 +18,13 @@ async function main() {
   const scheduledAt = Date.parse((await run.json()).created_at);
   if (ukDay(scheduledAt) !== ukDay(now)) { console.log("Expired run skipped"); return; }
   initializeApp({ credential: applicationDefault(), projectId: "yearly-budget-c93fb" });
+  if (process.env.REMINDERS_DRY_RUN === "true") {
+    const { nextDay } = require("./reminders.cjs");
+    await getFirestore().collectionGroup("yearlyReminders")
+      .where("date", "==", nextDay(ukDay(now))).where("done", "==", false).limit(1).get();
+    console.log("Firebase identity and reminder index verified. No notifications sent or documents written.");
+    return;
+  }
   const summary = await runDaily({ db: getFirestore(), messaging: getMessaging(), now, scheduledAt });
   console.log("Daily reminder counts", summary);
 }

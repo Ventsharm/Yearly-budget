@@ -1,52 +1,47 @@
-# Free GitHub sender setup (not applied automatically)
+# Yearly Budget reminder notifications
 
-Keep Firebase on Spark. No billable Cloud Functions or Cloud Scheduler. Do not link billing. This branch has no production deployment workflow.
+Uses the existing `yearly-budget-c93fb` Firebase project on free Spark, Firebase Cloud Messaging, and a standard GitHub-hosted Linux runner in this public repository. No Cloud Functions, paid scheduler, email service or Android rebuild.
 
-Repository write access was verified after the owner authorized the ChatGPT Codex Connector. Actions settings and repository variables require their own permissions; verify those before activation. No sender variables or workload identity have been configured by this branch.
+## Firebase setup
 
-## Identity
+- Private per-user reminder/token rules have been applied. The original subscription rule is unchanged; its saved baseline is `docs/firestore.rules.before-reminders`.
+- The collection-group index on `yearlyReminders(date, done)` is created; token values are excluded from indexing.
+- Dedicated keyless sender: `yearly-reminder-sender@yearly-budget-c93fb.iam.gserviceaccount.com`.
+- Workload identity provider: `projects/415123329669/locations/global/workloadIdentityPools/github-reminders/providers/github`.
+- Provider trust requires repository ID `1208747233`, owner ID `94763309`, `refs/heads/main`, and workflow ref `Ventsharm/Yearly-budget/.github/workflows/reminders.yml@refs/heads/main`.
+- The sender has only FCM message creation, Firestore transaction/read/query/create permissions and invalid-token deletion. It has no Owner/Editor role or private service-account key. Server IAM bypasses client rules; do not share this identity with another workflow.
+- The provider and service-account identifiers in the workflow are public configuration. No GitHub Actions variables or stored credentials are needed. Google OIDC credentials are short-lived.
 
-Use Google Cloud Workload Identity Federation with GitHub OIDC. Create a dedicated service account in existing project `yearly-budget-c93fb` and a workload identity pool/provider. These are IAM configuration, not a new Firebase project. Check existing configuration before creating anything. No service-account keys need to be generated or stored.
+## FCM registration and activation
 
-Provider issuer: `https://token.actions.githubusercontent.com`.
+The existing project's public Web Push VAPID key is configured in `push-config.js` and background registration is enabled. The sender runs only on `main`. No private VAPID key, Firebase CLI credentials or service-account private key is stored here.
 
-Map `google.subject=assertion.sub`, `attribute.repository_id=assertion.repository_id` and `attribute.repository_owner_id=assertion.repository_owner_id`.
+A manual run defaults to a read-only dry run. Publishing sender configuration changes on `main` also performs a read-only identity/index check. Only the daily schedule or an explicitly requested manual run with dry_run=false sends notifications. No GitHub Actions variables or additional account setup is required.
 
-Use a provider attribute condition requiring **all** of:
+The dedicated sender's Firestore query/create/read/delete permissions and FCM authorization were verified directly. The temporary permission used for validation was removed; the service account trusts only the restricted GitHub workload identity. A temporary setup-check document outside user collections was created and removed; existing user accounts/subscriptions were not changed.
 
-```
-assertion.repository_id == '1208747233' &&
-assertion.repository_owner_id == '94763309' &&
-assertion.ref == 'refs/heads/main' &&
-assertion.workflow_ref == 'Ventsharm/Yearly-budget/.github/workflows/reminders.yml@refs/heads/main'
-```
+## Behavior
 
-Grant that pool's principal set for repository ID `1208747233` `roles/iam.workloadIdentityUser` on the dedicated service account only. Do not grant Owner/Editor. Grant only the Firestore entity read/query/create/delete and transaction permissions required by the sender, and `cloudmessaging.messages.create` for FCM. Review the exact IAM permission set with Google before applying it. A normal backend identity bypasses Firestore client rules; do not expose it in browser code or share it with other workflows. Firestore IAM does not provide the same per-document path restrictions as client security rules.
+Users choose Enable notifications, see the custom popup, then the device's permission request where supported. A successfully saved NEW reminder shows one immediate notification on the saving device. Editing it does not repeat that confirmation. The shared service worker handles these and FCM messages; no competing messaging worker is registered.
 
-If this project's required identity APIs are disabled, review them before enabling; do not turn on a paid service or billing as a workaround. Configure `google-github-actions/auth` as shown in the checked-in workflow. Its credentials are ephemeral and the action cleans them up after the job.
+At approximately 09:17 Europe/London daily, GitHub checks reminders due tomorrow and sends FCM to registered devices. No due-date alert or email. Overdue reminders remain editable. Clicking a notification opens Reminders and preserves the existing app launch flag, so the app-access overlay accepts a fresh window. Login remains required for private data.
 
-## Repository variables (public identifiers, not keys)
+The workflow's manual **dry_run** input defaults to true. This verifies Firebase identity and the reminder index without sending notifications or writing documents. Normal scheduled runs send reminders.
 
-- `YEARLY_GCP_WORKLOAD_IDENTITY_PROVIDER`: full provider resource returned by Google, for example `projects/415123329669/locations/global/workloadIdentityPools/<actual-pool>/providers/<actual-provider>`.
-- `YEARLY_GCP_SERVICE_ACCOUNT`: actual dedicated service-account email.
-- `YEARLY_REMINDERS_ENABLED`: leave unset/false until production review; set to `true` only after approval and setup.
+## Costs and reliability
 
-Standard GitHub-hosted `ubuntu-latest`, one schedule/day at 09:17 Europe/London, 12-minute job timeout, one concurrent run. Versions of third-party actions are pinned to commit hashes. `npm ci --omit=dev --ignore-scripts` installs the locked sender dependency without install scripts. No untrusted reminder data is inserted into shell commands.
+Expected cost is £0 while Firebase stays on Spark and the repository uses free standard public-repository Actions runners. FCM sending has no charge. Free quotas and provider terms still apply. Billing was confirmed disabled with no attached account; no budget alert can be attached without one. A budget alert is not a spending cap.
 
-## FCM web registration
+One scheduled check per day, no frequent polling. Pages of 100, maximum 1,000 reminders/run, maximum 20 tokens/user. Existing accounts, subscription documents and collection paths are not migrated or reset. Small private delivery claims accumulate; monitor Spark storage/read/write quotas alongside existing app usage.
 
-In the **existing** Firebase project's settings, Cloud Messaging → Web configuration → Web Push certificates, obtain/generate its public VAPID key. Set `push-config.js` to that public key, and enable it only after the reviewed private token rules are active. Do not put any private VAPID key, Google credentials, Firebase CLI login token or account password in this repository.
+GitHub may delay or drop scheduled runs and disables public-repository schedules after 60 days without repository activity. Reminders created or moved after the daily check can miss their alert. This is not a guaranteed payment/cancellation deadline service.
 
-`getToken()` uses the existing `service-worker.js` registration, so no competing root-scope messaging worker is installed. Existing users enable permission on each supported browser/device. Firebase tokens are written only under their authenticated UID. Signing out disables local delivery, closes this app's displayed notifications and attempts to remove the device token. Network failures may leave a stale server token; the worker's owner check still prevents it displaying notifications for another user.
+A server claim commits before FCM sends; repeated runs cannot intentionally resend the same reminder/date. The browser also suppresses duplicate displays, rejects wrong-user/expired/wrong-day messages and closes app notifications on logout. Unregistered tokens are deleted only if unchanged. Exactly-once delivery cannot be guaranteed: a crash after the claim can lose an alert, and devices can block or delay pushes. No automatic resend after an ambiguous failure.
 
-## Tests
+## Checks and maintenance
 
-```
-npm ci --ignore-scripts
-npm test
-firebase emulators:start --only firestore,auth --project demo-yearly-budget
-FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 npm run test:rules
-FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 npm run test:ui
-```
+`npm test`: eight date/delivery/service-worker tests. `npm run test:rules` with the local Firestore emulator: five security/sender suites. Mobile-browser checks also passed before temporary review-only browser tooling was removed. They covered login, original subscription fixtures and paid totals, custom permission flow, creation notification, overdue editing, routing and offline shell.
 
-Browser checks use Chromium at `/usr/bin/chromium` and the isolated demo project. Tests never sign in to production accounts or modify production data. Unit/emulator tests fake FCM sending; real FCM/TWA verification remains a separate approval-stage check.
+Tests use only `demo-yearly-budget` in local emulators, never production user accounts. Live transport and Android device acceptance must be checked separately. The installed TWA's native configuration was not supplied; the website's root assetlinks file returned 404, so notification delegation could not be verified here. No Play Store changes are part of this update.
+
+Before future rule/index changes, re-read the live configuration and merge newer additions. Do not overwrite newer production rules or delete unrelated indexes. Never add billing, paid services or Android changes as a workaround without the owner's approval.
