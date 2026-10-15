@@ -12,7 +12,7 @@ async function main() {
   const repo = process.env.GITHUB_REPOSITORY;
   if (repo !== 'Ventsharm/Yearly-budget') throw Error('Unexpected repository');
   const get = async path => {
-    const response = await fetch(`https://api.github.com/repos/${repo}/${path}`, {
+    const response = await fetch(`https://api.github.com/repos/${repo}${path ? '/' + path : ''}`, {
       headers: { Authorization: `Bearer ${process.env.GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' },
       signal: AbortSignal.timeout(15000),
     });
@@ -36,7 +36,7 @@ async function main() {
   const report = { checkedAt: new Date().toISOString(), expectedTestAt: EXPECTED,
     trigger: process.env.GITHUB_EVENT_NAME, cron: process.env.DIAGNOSTIC_CRON || null,
     runId: process.env.GITHUB_RUN_ID, ref: process.env.GITHUB_REF,
-    defaultBranch: repository.data?.default_branch || null, fork: repository.data?.fork ?? null,
+    repositoryApiStatus: repository.status, defaultBranch: repository.data?.default_branch || null, fork: repository.data?.fork ?? null,
     actionsSettings: { apiStatus: permissions.status,
       enabled: permissions.data?.enabled ?? null,
       note: permissions.status === 403 ? 'Connection cannot inspect administrative settings; this is not evidence Actions are disabled.' : null },
