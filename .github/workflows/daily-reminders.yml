@@ -17,6 +17,9 @@ on:
     # Single daily reminder check, 09:11 UK time (GMT/BST), to minimise Firestore usage.
     - cron: '11 9 * * *'
       timezone: 'Europe/London'
+    # Temporary live production check, 16:00 UK on 15 October 2026; remove after test.
+    - cron: '0 16 15 10 *'
+      timezone: 'Europe/London'
 permissions:
   contents: read
   actions: read
