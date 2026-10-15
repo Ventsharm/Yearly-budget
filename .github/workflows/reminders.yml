@@ -1,4 +1,5 @@
 name: Day-before reminder notifications
+run-name: "Reminders — ${{ github.event.schedule || github.event_name }}"
 on:
   push:
     branches: [main]
