@@ -1,0 +1,7 @@
+{
+  "indexes": [{
+    "collectionGroup": "yearlyReminders", "queryScope": "COLLECTION_GROUP",
+    "fields": [{ "fieldPath": "date", "order": "ASCENDING" }, { "fieldPath": "done", "order": "ASCENDING" }]
+  }],
+  "fieldOverrides": [{ "collectionGroup": "yearlyPushTokens", "fieldPath": "token", "indexes": [] }]
+}
