@@ -14,9 +14,14 @@ on:
         type: boolean
         default: true
   schedule:
-    # Temporary comparison with the independent diagnostic, 14:47 UK.
-    # Restore the normal daily schedule after the owner reviews this test.
-    - cron: '47 13 15 10 *'
+    # UK-local daily checks; staggered attempts recover from occasional missed events.
+    # Firestore delivery claims prevent a reminder being sent again after it was claimed.
+    - cron: '11 9 * * *'
+      timezone: 'Europe/London'
+    - cron: '41 9 * * *'
+      timezone: 'Europe/London'
+    - cron: '17 11 * * *'
+      timezone: 'Europe/London'
 permissions:
   contents: read
   actions: read
