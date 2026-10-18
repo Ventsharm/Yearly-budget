@@ -1,5 +1,5 @@
 const {test}=require('node:test');const assert=require('node:assert/strict');
-const load=()=>import('../reminder-utils.js');
+const load=async()=>({...await import('../reminder-utils.js'),...await import('../budget-model.js')});
 test('calendar totals count unpaid monetary reminders in their actual UK month/year, in cents',async()=>{
  const {savingsTotals}=await load();const rows=[
   {type:'subscription',date:'2026-10-19',amount:4.09,done:false},
