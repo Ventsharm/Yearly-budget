@@ -2,7 +2,7 @@ const {test,before,after} = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const {initializeTestEnvironment,assertSucceeds,assertFails} = require('@firebase/rules-unit-testing');
-const {doc,setDoc,getDoc,getDocs,collection,updateDoc,deleteDoc} = require('firebase/firestore');
+const {doc,setDoc,getDoc,getDocs,collection,updateDoc,deleteDoc,writeBatch} = require('firebase/firestore');
 const {initializeApp,deleteApp} = require('firebase-admin/app');
 const {getFirestore} = require('firebase-admin/firestore');
 const {runDaily,deliveryId} = require('../automation/reminders.cjs');
@@ -35,6 +35,29 @@ test('reminders are private; owners can save, edit overdue dates, complete and d
   await assertFails(updateDoc(doc(own,path),{name:'x'.repeat(141)}));
   await assertSucceeds(deleteDoc(doc(own,path)));
 });
+test('subscription reminders use the existing private schema and sender contract',async()=>{
+ const own=env.authenticatedContext('subscription-owner').firestore(),other=env.authenticatedContext('other').firestore();
+ const path='users/subscription-owner/yearlyReminders/sub';
+ await assertSucceeds(setDoc(doc(own,path),{...reminder,type:'subscription'}));
+ await assertFails(getDoc(doc(other,path)));
+ await assertFails(updateDoc(doc(own,path),{type:'public'}));
+ await assertSucceeds(updateDoc(doc(own,path),{done:true}));
+});
+test('an exact-date legacy subscription links atomically without replacing original fields',async()=>{
+ const own=env.authenticatedContext('legacy-owner').firestore();
+ const old=doc(own,'users/legacy-owner/yearlySubscriptions/original');
+ const next=doc(own,'users/legacy-owner/yearlyReminders/legacy-sub-original');
+ await setDoc(old,{name:'Original',amount:4.09,month:'October',paid:true,legacyField:'preserved'});
+ const batch=writeBatch(own);
+ batch.set(next,{...reminder,name:'Original',type:'subscription',amount:4.09,done:true});
+ batch.update(old,{date:reminder.date,paid:true,updatedAt:2});
+ await assertSucceeds(batch.commit());
+ assert.equal((await getDoc(old)).data().legacyField,'preserved');
+ assert.equal((await getDoc(next)).data().done,true);
+ const paid=writeBatch(own);paid.update(old,{paid:false});paid.update(next,{done:false});
+ await assertSucceeds(paid.commit());
+ assert.equal((await getDoc(old)).data().paid,false);assert.equal((await getDoc(next)).data().done,false);
+});
 test('tokens are private, malformed tokens rejected, and delivery claims are server-only',async()=>{
   const own=env.authenticatedContext('alice').firestore();
   const other=env.authenticatedContext('bob').firestore();
@@ -60,7 +83,7 @@ test('daily sender handles races, retries, restarts, changed dates, and invalid 
   const base='users/sender';
   const good=db.doc(base+'/yearlyPushTokens/good'), bad=db.doc(base+'/yearlyPushTokens/bad');
   await good.set({token:'good'.repeat(20),updatedAt:1});await bad.set({token:'bad'.repeat(20),updatedAt:1});
-  for(const [id,patch] of Object.entries({tomorrow:{},today:{date:'2026-10-15'},overdue:{date:'2026-10-14'},done:{done:true}}))
+  for(const [id,patch] of Object.entries({tomorrow:{},subscription:{type:'subscription'},today:{date:'2026-10-15'},overdue:{date:'2026-10-14'},done:{done:true}}))
     await db.doc(base+'/yearlyReminders/'+id).set({...reminder,...patch});
   const messages=[];
   const messaging={sendEachForMulticast:async m=>{
@@ -71,14 +94,14 @@ test('daily sender handles races, retries, restarts, changed dates, and invalid 
   const options={db,messaging,clock:()=>now,logger:{warn(){}}};
   await Promise.all([runDaily(options),runDaily(options)]);
   await runDaily(options);
-  assert.equal(messages.length,1);assert.equal(messages[0].data.dueDate,'2026-10-16');
+  assert.equal(messages.length,2);assert.equal(messages[0].data.dueDate,'2026-10-16');
   assert.equal(messages[0].notification,undefined);
   assert.equal((await bad.get()).exists,false);assert.equal((await good.get()).exists,true);
   const claim=db.doc(base+'/yearlyReminderDeliveries/'+deliveryId(base+'/yearlyReminders/tomorrow','2026-10-16'));
   assert.equal((await claim.get()).exists,true);
   await db.doc(base+'/yearlyReminders/tomorrow').update({date:'2026-10-17'});
   await runDaily({...options,clock:()=>Date.parse('2026-10-16T08:17:00Z')});
-  assert.equal(messages.length,2);
+  assert.equal(messages.length,3);
   assert.equal((await db.doc(base+'/yearlyReminders/overdue').get()).exists,true);
 });
 test('a crash after claiming cannot resend on restart; an ambiguous FCM failure is not retried',async()=>{

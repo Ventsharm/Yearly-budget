@@ -12,7 +12,7 @@ service cloud.firestore {
       return r.keys().hasAll(['name', 'date', 'type', 'amount', 'done', 'updatedAt'])
         && r.name is string && r.name.size() > 0 && r.name.size() <= 140
         && r.date is string && r.date.matches('^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$')
-        && r.type in ['cancel', 'payment'] && r.done is bool
+        && r.type in ['cancel', 'payment', 'subscription'] && r.done is bool
         && (r.amount == null || (r.amount is number && r.amount >= 0 && r.amount <= 1000000000))
         && r.updatedAt is number;
     }

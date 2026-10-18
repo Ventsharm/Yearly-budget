@@ -2,10 +2,10 @@
 importScripts("./push-state.js");
 importScripts("https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging-compat.js");
-const CACHE_NAME = "yearly-budget-v4-fcm";
+const CACHE_NAME = "yearly-budget-v5-unified";
 const base = self.registration.scope;
 const shell = ["./", "index.html", "manifest.webmanifest", "Icon-192.png", "Icon-512.png",
-  "push-client.js", "push-config.js", "push-state.js", "reminder-utils.js"].map(p => new URL(p, base).href);
+  "app.js", "push-client.js", "push-config.js", "push-state.js", "reminder-utils.js"].map(p => new URL(p, base).href);
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(shell)));
 });
