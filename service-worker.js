@@ -2,7 +2,7 @@
 importScripts("./push-state.js");
 importScripts("https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging-compat.js");
-const CACHE_NAME = "yearly-budget-v6-compatible";
+const CACHE_NAME = "yearly-budget-v7-important";
 const base = self.registration.scope;
 const shell = ["./", "index.html", "manifest.webmanifest", "Icon-192.png", "Icon-512.png",
   "app.js", "app.js?v=unified-2", "budget-model.js", "push-client.js", "push-config.js", "push-state.js", "reminder-utils.js"].map(p => new URL(p, base).href);
